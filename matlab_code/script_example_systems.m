@@ -1,28 +1,4 @@
-%% Visualise an example
-parms = struct("rho0", 0.01,  ...
-               "omega", 10^-5, ...
-               "beta1", 10^-6 )
-
-% Solve
-[yCyclic, yConst, y0Cyclic] = solve_system(parms);
-plot_system_response( yConst )
-plot_system_response( yCyclic )
-
-plot(yConst.t, yConst.EA);
-set(gca, 'YScale', 'log');
-xlim([0 1000]);
-
-
-% Print whether the condition is satisfied
-T = median(yConst(yConst.t>1e3,:))
-[lowEASystem, growth_rate, clear_rate] = fn_determine_condition_satisfied(T,parms)
-
-% Print the scaled values for auto
-[yConst(end,1:5)./1e6 yConst(end,6:8)./1e9]
-
-
-
-%% Default parameters simulation
+%% Default parameters
 %===============================================================================
 % Default parameters
 defParms = struct();
@@ -54,76 +30,96 @@ sgtitle("Cyclic influx")
 
 
 % Write (cyclic) result --------------------------------------------------------
-folder = '../../data/default_system';
+folder = '../output/timeseries/default_system';
 % Check if the folder exists and, if not, create it
 if ~exist(folder, 'dir')
     mkdir(folder);
 end
 writetable(yCyclic, fullfile(folder,'timeseries.csv'));
 write_sim_info(fullfile(folder,'model_info.yml'), ...
-                    defParms, y0Cyclic, "defaultparms-cyclic");
+                    defParms, y0Cyclic, "default_parameters");
 
 
-%% No attachment example
+%% Attachment examples
+%===============================================================================
+
+% Output folder
+folder = '../output/timeseries/attachment_examples';
+% Check if the folder exists and, if not, create it
+if ~exist(folder, 'dir')
+    mkdir(folder);
+end
+
+% No attachment example --------------------------------------------------------
 parms = struct("rho0", 0.1,  ...
                "omega", 10^-4, ...
                "beta1", 10^-5 )
 
 % Solve
 [yCyclic, yConst, y0Cyclic] = solve_system(parms);
-plot_system_response( yConst )
-plot_system_response( yCyclic )
-
+% plot_system_response( yConst )
+% plot_system_response( yCyclic )
 
 % Save
-folder = '../../data/no_attachment_example';
-% Check if the folder exists and, if not, create it
-if ~exist(folder, 'dir')
-    mkdir(folder);
-end
-writetable(yCyclic, fullfile(folder,'timeseries.csv'));
-write_sim_info(fullfile(folder,'model_info.yml'), ...
-                    parms, y0Cyclic, "defaultparms-cyclic");
+writetable(yCyclic, fullfile(folder,'no_attachment_timeseries.csv'));
+write_sim_info(fullfile(folder,'no_attachment_model_info.yml'), ...
+                    parms, y0Cyclic, "no_attachment");
+
+
+% Transient example (same as default) ------------------------------------------
+parms = struct("rho0", 0.1,  ...
+               "omega", 10^-5, ...
+               "beta1", 10^-6 )
+
+% Solve
+[yCyclic, yConst, y0Cyclic] = solve_system(parms);
+% plot_system_response( yConst )
+% plot_system_response( yCyclic )
+
+% Save
+writetable(yCyclic, fullfile(folder,'transient_attachment_timeseries.csv'));
+write_sim_info(fullfile(folder,'transient_attachment_model_info.yml'), ...
+                    parms, y0Cyclic, "transient_attachment");
+
+
+% Sustained example ------------------------------------------------------------
+parms = struct("rho0", 0.1,  ...
+               "omega", 10^-5.7, ...
+               "beta1", 10^-6.0)
+
+% Solve
+[yCyclic, yConst, y0Cyclic] = solve_system(parms);
+% plot_system_response( yConst )
+% plot_system_response( yCyclic )
+
+% Save
+writetable(yCyclic, fullfile(folder,'sustained_attachment_timeseries.csv'));
+write_sim_info(fullfile(folder,'sustained_attachment_model_info.yml'), ...
+                    parms, y0Cyclic, "sustained_attachment");
 
 
 %% Varying rho0 examples
 %===============================================================================
+% Output folder
+rho0_folder = '../output/timeseries/rho0_sweep';
+% Check if the folder exists and, if not, create it
+if ~exist(rho0_folder, 'dir')
+    mkdir(rho0_folder);
+end
+
 % Parameters
 rho0_vals = [0.0, 0.005, 0.01, 0.05, 0.1, 0.2];
-parms = get_default_parms_struct();
 parms = struct( 'omega',1e-5,  'beta1', 1e-6 );
-
-% Output containers for the results
-yOut = cell(length(rho0_vals),1);
-y0_arr = zeros(length(rho0_vals),8);
 
 % Loop over the rho0 values and store the timeseries for the cyclic
 for i = 1:length(rho0_vals)
     parms.rho0 = rho0_vals(i);
     [yCyclic, ~, y0] = solve_system(parms);
-    yOut{i} = yCyclic;
-    % Store the simulation details
-    yOut{i}.rho0 = repmat(rho0_vals(i), height(yCyclic),1);
-    yOut{i}.id = repmat(i, height(yCyclic),1);
-    y0_arr(i,:) = y0;
+    file_prefix = sprintf('rho0_%.3f', parms.rho0);
+    writetable(yCyclic, fullfile(rho0_folder, file_prefix + "_timeseries.csv"));
+    write_sim_info(fullfile(rho0_folder, file_prefix + "_model_info.yml"), ...
+                    parms, y0Cyclic, file_prefix);
 end
-
-% Concatenate into single table (and reorder with rho0 and t at front)
-rho0_ts = vertcat(yOut{:});
-rho0_ts = movevars(rho0_ts,{'id','rho0','t'},'before',1);
-
-% Save timeseries to file
-folder = '../../data/rho0_sweep';
-% Check if the folder exists and, if not, create it
-if ~exist(folder, 'dir')
-    mkdir(folder);
-end
-writetable(rho0_ts, fullfile(folder,'timeseries.csv'));
-
-% Save model info to file
-defaults = get_default_parms_struct();
-defaults = rmfield(defaults,'rho0');
-write_sim_info(fullfile(folder,'model_info.yml'),defaults,y0_arr,'rho0_sweep')
 
 
 %% Heatmap examples
@@ -131,72 +127,28 @@ write_sim_info(fullfile(folder,'model_info.yml'),defaults,y0_arr,'rho0_sweep')
 % Define the systems of interest
 eg_parms = struct( ...
     "A", struct("rho0", 0.1, "omega", 10^-5, "beta1", 10^-6), ...
-    "E", struct("rho0", 0.1,  "omega", 10^-5.7, "beta1", 10^-6.0), ...
     "B", struct("rho0", 0.1,  "omega", 10^-5, "beta1", 10^-6.9), ...
     "C", struct("rho0", 0.1,  "omega", 10^-5.25, "beta1", 10^-6.4), ...
-    "D", struct("rho0", 0.1,  "omega", 10^-5.18, "beta1", 10^-6.2));
-    
+    "D", struct("rho0", 0.1,  "omega", 10^-5.18, "beta1", 10^-6.2), ...
+    "E", struct("rho0", 0.1,  "omega", 10^-5.7, "beta1", 10^-6.0));
 
-% Loop over the system and solve the systems
-labels = fields(eg_parms);
-resTimeseries = cell(length(labels),1);
-y0_arr = zeros(length(labels),8);
-for i = 1:length(labels)
-    % Get the label and parameters from the structure
-    labeli = labels{i}
-    parms = eg_parms.(labeli)
-
-    % Solve
-    [yCyclic, yConst, y0Cyclic] = solve_system(parms);
-
-    % Add the simulation label to the table
-    yCyclic.id = repmat(labeli,height(yCyclic),1);
-
-    % Add to the output structure
-    resTimeseries{i} = yCyclic;
-    y0_arr(i,:) = y0Cyclic;
-end
-
-% Plot all EA
-figure;
-for i = 1:length(labels)
-    subplot(1,length(labels),i);
-    labeli = labels{i};
-    resi = resTimeseries{i};
-    plot(resi.t,resi.EA)
-    title(labeli);
-end
-% Plot all system responses for example B
-plot_system_response(resTimeseries{(labels=="E")})
-
-
-% Save the timeseries data
-resTimeseries = vertcat(resTimeseries{:});
-resTimeseries = movevars(resTimeseries,{'id','t'},'before',1);
-folder = '../../data/examples/';
+% Output folder
+heatmap_folder = '../output/timeseries/heatmap_examples';
 % Check if the folder exists and, if not, create it
-if ~exist(folder, 'dir')
-    mkdir(folder);
+if ~exist(heatmap_folder, 'dir')
+    mkdir(heatmap_folder);
 end
-writetable(resTimeseries, fullfile(folder,'timeseries.csv'));
-
-% Save the parameter information
-eg_labs = fieldnames(eg_parms);
-parms_table = cell(numel(eg_labs),1);
-for i = 1:numel(eg_labs)
-    tmp = eg_parms.(eg_labs{i});
-    tmp.id = eg_labs{i};
-    parms_table{i} = struct2table(tmp);
+ 
+keys = fieldnames(eg_parms);
+for i = 1:numel(keys)
+    key_i = keys{i};
+    parms = eg_parms.(key_i);
+    [yCyclic, ~, y0] = solve_system(parms);
+    file_prefix = "example" + key_i;
+    writetable(yCyclic, fullfile(heatmap_folder, file_prefix + "_timeseries.csv"));
+    write_sim_info(fullfile(heatmap_folder, file_prefix + "_model_info.yml"), ...
+                    parms, y0Cyclic, key_i);
 end
-defaultparms = get_default_parms_struct();
-defaultparms = rmfield(defaultparms,fieldnames(eg_parms.A));
-write_sim_info(fullfile(folder,'model_info.yml'), ...
-    defaultparms, y0_arr, "heatmap-examples");
-writetable(vertcat(parms_table{:}),fullfile(folder,'parameters.csv'))
-
-
-
-
 
 
 %% Functions

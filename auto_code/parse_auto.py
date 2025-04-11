@@ -1,6 +1,32 @@
 import re
 import pandas as pd
+from pathlib import Path
 
+# AUTO-07p python setup
+#------------------------
+import sys, os
+auto_dir = "auto-07p" # relative path to auto program directory
+auto_dir = Path(auto_dir).resolve() # Safest to pass as full path
+os.environ['AUTO_DIR'] = str(auto_dir)
+sys.path.append(Path(auto_dir,"bin"))
+sys.path.append(Path(auto_dir,"cmds"))
+
+# Functions for processing auto output
+#--------------------------------------
+
+# Function to read and write the data from a bifDiagBranch object
+def extract_data(branch, data_label, system = None):
+        header = branch.keys()
+        point_types = [pt['TY'] if pt['TY'] != 'No Label' else None
+                    for pt in branch]
+        df = pd.DataFrame(branch.toArray(), columns=header)
+        df['point_type'] = point_types
+        if (system is not None):
+            df['system_id'] = system
+        df['branch_id'] = data_label
+        return(df)
+
+# Function to parse the data in the fort9 files
 def parse_fort9(include_line_numbers = False, downsample = None):
 
     with open('fort.9', 'r') as file:

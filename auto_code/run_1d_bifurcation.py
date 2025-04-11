@@ -3,16 +3,9 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import argparse
-import parse_fort9
-from ast import literal_eval
-
-# Need to add the auto-07p paths to our environment to import the AUTO python modules
-import sys, os
-# os.chdir('immune_model_final') # If running interactively
-auto_dir = "../auto-07p"
-os.environ['AUTO_DIR'] = auto_dir
-sys.path.append(Path(auto_dir,"bin"))
-sys.path.append(Path(auto_dir,"cmds"))
+import os
+# Must import parse_auto before we import auto
+from parse_auto import parse_fort9, extract_data
 import auto
 from auto import run, load
 
@@ -32,21 +25,10 @@ def run_1d_bifurcation(parameter, system_chosen):
     unames_2 = {(9-k): v for k, v in unames_1.items()}
     unames_dict = {"P1": unames_1, "P2": unames_2, "N1": unames_1, "N2": unames_2}
 
-    # Data directory
-    data_dir = Path("../../data/bifurcation",parameter)
+    # Data directory (extra .. as we change directories above)
+    data_dir = Path("../../output/bifurcation",parameter)
     # Create directory if it doesn't exist
     data_dir.mkdir(parents=True, exist_ok=True)
-
-        # Function to read and write the data from a bifDiagBranch object
-    def extract_data(branch, data_label):
-        header = branch.keys()
-        point_types = [pt['TY'] if pt['TY'] != 'No Label' else None
-                    for pt in branch]
-        df = pd.DataFrame(branch.toArray(), columns=header)
-        df['point_type'] = point_types
-        df['system_id'] = system_chosen
-        df['branch_id'] = data_label
-        return(df)
 
     # Load the model - files: immune_model.f90 and c.immune_model
     immune_model = load(systems_list[system_chosen], c=constants_file)
@@ -63,7 +45,7 @@ def run_1d_bifurcation(parameter, system_chosen):
                         UZSTOP = {'beta1_scaled': [-10, -4], 'omega_scaled':[-7, -3]},
                         JAC = 0)
     # Extract the fort.9 data
-    fort9_df_fwd = parse_fort9.parse_fort9(downsample=100)
+    fort9_df_fwd = parse_fort9(downsample=100)
 
     # Run the 1D bifurcation backwards
     omega_backward =  run(immune_model, NMX  = 200000, NPR  = 2000000,
@@ -72,14 +54,14 @@ def run_1d_bifurcation(parameter, system_chosen):
                         UZSTOP = {'beta1_scaled': [-10, -4], 'omega_scaled':[-7, -3]}, 
                         JAC = 0)
     # Extract the fort.9 data
-    fort9_df_bwd = parse_fort9.parse_fort9(downsample=100)
+    fort9_df_bwd = parse_fort9(downsample=100)
 
     # Combine the solutions
     omega = omega_forward + omega_backward
     labels = ['SP_fwd', 'SP_bwd']
 
     # Extract the data and export to a csv file
-    omega_df = [extract_data(omega[i], data_label = labels[i]) for i in range(len(omega))]
+    omega_df = [extract_data(omega[i], data_label = labels[i], system=system_chosen) for i in range(len(omega))]
     pd.concat(omega_df).to_csv(Path(data_dir,system_chosen+"_sp_data.csv"), index = False)
 
     # Export the fort.9 data (we don't need to keep the eigenvalues)
@@ -111,14 +93,14 @@ def run_1d_bifurcation(parameter, system_chosen):
                     EPSL = 1e-4, EPSU = 1e-4, EPSS = 1e-2,
                     SP = ['BP1'],
                     JAC = 0)
-    fort9_df_fwd = parse_fort9.parse_fort9()
+    fort9_df_fwd = parse_fort9()
 
     # Run backwards
     hb1 = hb1_forward 
     hb1_labels = ['HB1_fwd', 'HB1_bwd']
 
     # Extract the data and export to a csv file
-    hb1_df = [extract_data(hb1[i], data_label = hb1_labels[i]) for i in range(len(hb1))]
+    hb1_df = [extract_data(hb1[i], data_label = hb1_labels[i], system=system_chosen) for i in range(len(hb1))]
     pd.concat(hb1_df).to_csv(Path(data_dir,system_chosen+"_hb1_data.csv"), index = False)
 
     # Export the fort.9 data
@@ -148,14 +130,14 @@ def run_1d_bifurcation(parameter, system_chosen):
                     EPSL = 1e-4, EPSU = 1e-4, EPSS = 1e-2,
                     SP = ['BP1'],
                     JAC = 0)
-    fort9_df_fwd = parse_fort9.parse_fort9()
+    fort9_df_fwd = parse_fort9()
 
     # Combine the solutions
     hb2 = hb2_forward 
     hb2_labels = ['HB2_fwd', 'HB2_bwd']
 
     # Extract the data and export to a csv file
-    hb2_df = [extract_data(hb2[i], data_label = hb2_labels[i]) for i in range(len(hb2))]
+    hb2_df = [extract_data(hb2[i], data_label = hb2_labels[i], system=system_chosen) for i in range(len(hb2))]
     pd.concat(hb2_df).to_csv(Path(data_dir, system_chosen+"_hb2_data.csv" ), index = False)
 
     # Export the fort.9 data (we don't need to output the multipliers data)
@@ -182,6 +164,10 @@ def main():
     parameter = args.parameter
     system_chosen = args.system
 
+    # Change to the correct working directory containing the auto files
+    auto_files_dir = "one_parameter_auto_files/"
+    os.chdir(auto_files_dir)
+
     # Run the bifurcation analysis
     if args.all:
         for system in ['P1', 'P2', 'N1', 'N2']:
@@ -197,6 +183,9 @@ def main():
         bd = run_1d_bifurcation(parameter, system_chosen)
         auto.plot(bd)
         auto.wait()
+
+    # Clean files
+    auto.clean()
 
 if __name__ == "__main__":
     # run_1d_bifurcation("beta1", "P1")
