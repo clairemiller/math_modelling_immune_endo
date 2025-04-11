@@ -26,35 +26,6 @@ Miller, C., Germano, D. P. J., Chenoweth, A. M., & Holdsworth-Carson, S. (2025).
 
 # Project requirements
 
-## Repository structure
-
-```bash
-├── README.md
-├── auto_code
-│   ├── one_parameter
-│   │   ├── c.immune_model.beta1
-│   │   ├── c.immune_model.omega
-│   │   ├── c.immune_model_N1
-│   │   ├── c.immune_model_N2
-│   │   ├── c.immune_model_P2
-│   │   ├── immune_model_N1.f90
-│   │   ├── immune_model_N2.f90
-│   │   ├── immune_model_P1.f90
-│   │   ├── immune_model_P2.f90
-│   │   └── run_1d_bifurcation.py
-│   └── two_parameter
-│       ├── c.immune_model
-│       ├── immune_model.f90
-│       ├── parse_fort9.py
-│       └── run_2D_bifurcation.py
-└── matlab_code
-    ├── default_parameters.m
-    ├── fn_determine_condition_satisfied.m
-    ├── fn_immune_ode_system.m
-    ├── script_example_systems.m
-    └── script_parameter_sweep.m
-```
-
 ## Software and libraries
 
 The following is a list of the software versions and any required packages that were used to run the code in this project:
@@ -65,7 +36,7 @@ The following is a list of the software versions and any required packages that 
     - pandas (Version: 2.2.3)
 - **AUTO-07p**
 
-### AUTO-07p
+## AUTO-07p
 To perform the bifurcation analyses, you will need to have AUTO-07p installed. This is available from https://github.com/auto-07p/auto-07p/. To run the code in this project, the application directory is assumed to be located in the `auto_code` directory with folder name `auto-07p`.
 
 # Running the code
