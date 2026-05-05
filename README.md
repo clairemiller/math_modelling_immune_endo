@@ -1,6 +1,6 @@
 # Journal article
 
-This repository contains code to reproduce the results from the paper: **Mathematical modelling of macrophage and natural killer cell immune response during early stages of peritoneal endometriosis lesion onset**, currently in submission and available on BioRxiv (https://doi.org/10.1101/2025.01.20.633967).
+This repository contains code to reproduce the results from the paper: **Mathematical modelling of macrophage and natural killer cell immune response during early stages of peritoneal endometriosis lesion onset** (https://doi.org/10.1098/rsif.2025.0076).
 
 ## Abstract
 The immune system is hypothesised to contribute to the onset of endometriosis lesions. However, the precise mechanisms underlying its role are not yet known. We introduce a novel compartmental model that describes the interactions between innate immune cells, specifically macrophages and natural killer cells, and endometrial cells, occurring within the peritoneal fluid during the early stages of superficial peritoneal) endometriosis lesion onset. Our study focuses on retrograde influx, immune detection, and immune clearance. Results show an increased influx of endometrial cells into peritoneal fluid correlates with heightened pro-inflammatory macrophage activation, but does not lead to an increase in disease. We compare the system's response to changes in immune cytotoxicity and ability to detect ectopic endometrial cells. We predict that reduced cytotoxicity is a key driver of disease. These findings align with the increased immune activation observed clinically. Lastly, we predict that an individual can transition to a diseased state following a reduction in immune system cytotoxicity and/or reduced ability to detect ectopic cells. Due to hysteresis, a significant improvement is then required to restore an individual to the disease-free state. This work provides a valuable framework to explore hypotheses of endometriosis lesion onset and assist in understanding of the disease.
@@ -10,17 +10,21 @@ The immune system is hypothesised to contribute to the onset of endometriosis le
 
 If you use this code, please cite the paper:
 
-Miller, C., Germano, D. P. J., Chenoweth, A. M., & Holdsworth-Carson, S. (2025). *Mathematical modelling of the immune response during endometriosis lesion onset*. **bioRxiv**. https://doi.org/10.1101/2025.01.20.633967.
+Claire M. Miller, Domenic P. J. Germano, Alicia M. Chenoweth, Sarah Holdsworth-Carson; Mathematical modelling of macrophage and natural killer cell immune response during early stages of peritoneal endometriosis lesion onset. J R Soc Interface 1 August 2025; 22 (229): 20250076. https://doi.org/10.1098/rsif.2025.0076
 
 **bibtex:**
 ```bibtex
 @article{miller25,
-  title = {Mathematical Modelling of the Immune Response during Endometriosis Lesion Onset},
-  author = {Miller, Claire and Germano, Domenic P. J. and Chenoweth, Alicia M. and {Holdsworth-Carson}, Sarah},
-  year = {2025},
-  pages = {2025.01.20.633967},
-  publisher = {bioRxiv},
-  doi = {10.1101/2025.01.20.633967},
+  title = {Mathematical Modelling of Macrophage and Natural Killer Cell Immune Response during Early Stages of Peritoneal Endometriosis Lesion Onset},
+  author = {Miller, Claire M. and Germano, Domenic P. J. and Chenoweth, Alicia M. and {Holdsworth-Carson}, Sarah},
+  year = 2025,
+  month = aug,
+  journal = {Journal of The Royal Society Interface},
+  volume = {22},
+  number = {229},
+  pages = {20250076},
+  publisher = {Royal Society},
+  doi = {10.1098/rsif.2025.0076}
 }
 ```
 
